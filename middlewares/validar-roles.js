@@ -8,13 +8,13 @@ const esAdminRole = ( req, res = response, next ) => {
         });
     }
     // acá desestructuramos esta info y preguntamos por si es ADMIN
-    const { rol, nombre } = req.usuario;
+    const { role, nombre } = req.usuario;
 
-    if ( rol !== 'ADMIN_ROLE' ) {  // Si no es admin sale con el error
+    if ( role !== 'ADMIN_ROLE' ) {  // Si no es admin sale con el error
 
         return res.status(401).json({
             msg: `${ nombre } no es administrador - No puede hacer esto`
-        })
+        });
     }
 
     // Si es ADMIN continua con la ejecución de la función eliminar
@@ -30,7 +30,7 @@ const tieneRole = ( ...roles ) =>{ // recibe los roles que le pasa la llamada
         });
     }
 
-        if ( !roles.includes( req.usuario.rol ) ) {  // Si no viene el rol esperado sale con error
+        if ( !roles.includes( req.usuario.role ) ) {  // Si no viene el rol esperado sale con error
         return res.status(401).json({
             msg: `El servicio requiere uno de estos roles ${ roles }`
         });

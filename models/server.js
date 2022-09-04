@@ -9,9 +9,17 @@ class Server {
         
         this.app = express();
         this.port = process.env.PORT;
-        this.usuariosPath = '/api/usuarios';
-        this.authPath = '/api/auth';
-
+        this.paths = {
+        usuarios: '/api/usuarios',
+        carreras: '/api/carreras',
+        elementos: '/api/elementos',
+        prestamos: '/api/prestamos',
+        personas: '/api/personas',
+        reparaciones: '/api/reparaciones',
+        //historiales: '/api/historiales',
+        //buscar: '/api/buscar',
+        auth : '/api/auth'
+        }
         // Middlewares - funciones predefinidas
         this.middlewares();
 
@@ -37,8 +45,17 @@ class Server {
     }
 
     routes() {
-        this.app.use( this.authPath, require('../router/auth'));
-        this.app.use( this.usuariosPath, require('../router/usuarios'));
+        this.app.use( this.paths.auth, require('../router/auth'));
+        //this.app.use( this.paths.buscar, require('../router/buscar'));
+        this.app.use( this.paths.carreras, require('../router/carreras'));
+        this.app.use( this.paths.elementos, require('../router/elementos'));
+        //this.app.use( this.paths.historiales, require('../router/historiales'));
+        this.app.use( this.paths.personas, require('../router/personas'));
+        this.app.use( this.paths.prestamos, require('../router/prestamos'));
+        this.app.use( this.paths.reparaciones, require('../router/reparaciones'));
+        this.app.use( this.paths.usuarios, require('../router/usuarios'));
+        
+        
 
     }
 
