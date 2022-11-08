@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator'); // Para traer errores
 const bcryptjs = require('bcryptjs');
 // importaciones internas
 const Usuario = require('../models/usuarios');
+const { generarJWT } = require('../middlewares/generar-jwt'); 
 
 
 // inicio lógica del controlador
@@ -55,9 +56,13 @@ const usuariosPost = async (req, res = response) => { // el post de usuarios - A
     // guardamos un BD
     await usuario.save();
 
+    // Generar el token - JWT
+    const token = await generarJWT( usuario.id);
+
     res.json({
         msg: 'post API - controlador',
-        usuario
+        usuario,
+        token
     });
 
 }

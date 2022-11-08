@@ -1,4 +1,5 @@
 // ARCHIVO PARA DEFINIR RUTAS DE AUTH
+// path: api/login
 
 // Importaciones de terceros
 
@@ -7,12 +8,12 @@ const { check } = require('express-validator');
 
 // Middlewares
 const {
-    validarCampos,
+    validarCampos, validarJWT,
 } = require('../middlewares');
 
 // importaciones internas
 
-const { login } = require('../controllers/auth');
+const { login, renewToken } = require('../controllers/auth');
 
 // código de este archivo
 
@@ -25,6 +26,12 @@ router.post('/login', [
     check('password', 'La contraseña es obligatoriaaaaaaaaaaa').not().isEmpty(),
     validarCampos
 ],login );
+
+// este path es api/login/renew
+router.get('/login/renew', 
+      validarJWT,
+      renewToken
+    );
 
 // EXPORTACIONES 
 module.exports = router;
