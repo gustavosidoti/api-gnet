@@ -36,9 +36,10 @@ router.put('/:id', [
     tieneRole('ADMIN_ROLE', 'USER_ROLE'),
 ], carrerasPut ); // requerimos un id
 
-router.delete('/:id', [
+router.delete('/delete', [
         validarJWT,
-        esAdminRole,
+       // esAdminRole,
+       tieneRole('ADMIN_ROLE', 'USER_ROLE'),
 ], carrerasDelete );
 
 // Compartimos el módulo

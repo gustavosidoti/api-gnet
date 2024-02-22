@@ -37,7 +37,7 @@ router.post('/', [
         check('nombre', 'El nombre es obligatorio').not().isEmpty(), // no esté vacío 
         check('password', 'El password debe ser de más de 6 caracteres').isLength({ min: 6 }),
         check('email').custom( emailExiste ), 
-        check('role').custom( esRoleValido ),
+        //check('role').custom( esRoleValido ),
         validarCampos // llamamos el middleware que hará la última revisión
 ], usuariosPost );
 

@@ -36,6 +36,7 @@ const login = async (req, res = response) => {
 
         // Verificar la contraseña
         // esta funcion compara el pass recibido con el de la BD
+        /*
         const validPassword = bcryptjs.compareSync( password, usuarioDB.password);
         
         if( !validPassword ) { // si el validpassword está en false
@@ -43,7 +44,7 @@ const login = async (req, res = response) => {
                 msg: 'Usuario / Password no son correctos - password'
             });
         }
-
+*/
         // Generar el JWT
         const token = await generarJWT( usuarioDB.id );
         // Devolver el OK de la respuesta

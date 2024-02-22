@@ -39,7 +39,7 @@ const usuariosPost = async (req, res = response) => { // el post de usuarios - A
         return res.status(400).json(errors); // Esto me muestra los errores encontrados por falta de formato de correo
     }
 
-
+        console.log(req.body)
     const {
         email,
         password,
@@ -56,8 +56,10 @@ const usuariosPost = async (req, res = response) => { // el post de usuarios - A
     // guardamos un BD
     await usuario.save();
 
+
+
     // Generar el token - JWT
-    const token = await generarJWT( usuario.id);
+    const token = await generarJWT( usuario.uid); // VER SI ES UID
 
     res.json({
         msg: 'post API - controlador',

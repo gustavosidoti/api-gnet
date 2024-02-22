@@ -9,15 +9,15 @@ const CarreraSchema = Schema({
         estado: {
             type: Boolean,
             default: true,
-            required: true,
+            required: false,
         },
-        usuario: {
-            required: true,
-            type: Schema.Types.ObjectId,
-            ref: 'Usuario'
-        },
+        
 
-}, {collection: 'carrera'});
+}, 
+{
+    timestamps: true
+},
+{collection: 'carreras'});
 
 // formatear el schema y devolver al usuario lo que decidamos mostrarle
 CarreraSchema.method('toJSON', function() {

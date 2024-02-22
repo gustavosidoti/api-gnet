@@ -1,8 +1,9 @@
 // CONTROLADOR DE CARRERAS
-
+var mongoose = require('mongoose');
 const { response } = require('express'); // lo desestructuramos para utilizar los res.
 // importaciones internas
-const Carreras = require('../models/carreras');
+const Carrera = require('../models/carreras');
+
 
 
 // inicio lógica del controlador
@@ -13,12 +14,12 @@ const carrerasGet = async(req, res = response, next) => {
     // Si no viene colocamos 0 por defecto
 
     const [carreras] = await Promise.all([ // ARRAY DE PROMESAS
-        Carreras
-        .find({estado: true}, 'nombreCarrera usuario') // los campos que queremos
+        Carrera
+        .find({estado: true}, 'nombreCarrera') // los campos que queremos
         .skip(desde) // se saltea los anteriores a este número
         .limit(5), // nos muestra hasta este número
 
-        Carreras.countDocuments()
+        
     ]);
 
     res.status(200).json({
@@ -33,19 +34,17 @@ const carrerasGet = async(req, res = response, next) => {
 const carrerasPost = async (req, res = response) => { // el post de usuarios - Agregar
 
     // al pasar por el token ya nos indica que estamos logueados, tenemos uid
-    const uid = req.uid;
-    const carrera = new Carreras({
-        usuario: uid,
-        ...req.body
-    });
-
+    
+    const carrera = new Carrera(req.body);
     try {
+        
         // guardamos un BD
-        const carreraDB = await carrera.save();
+       // const carreraDB = await carrera.save();
+        let respuesta = await carrera.save();
 
         res.status(200).json({
             ok: true,
-            carreraDB
+            msg: respuesta
         });
     } catch (error) {
         console.log(error);
@@ -61,32 +60,23 @@ const carrerasPost = async (req, res = response) => { // el post de usuarios - A
 
 const carrerasPut = async(req, res = response) => { // el put de usuarios - Actualizar
 
-    const id = req.params.id;
-    const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+    const id = new mongoose.Types.ObjectId(req.params.id);
 
+    console.log(id);
+    
     try {
 
-        const carreraDB = await Carreras.findById(id);
-
-        if (!carreraDB) {
-            res.status(404).json({
-                ok: true,
-                msg: 'Carrera no encontrada por id'
-            });
+        const updatedCarrera = await Carrera.findOneAndUpdate({_id: id}, {$set: req.body}, {new: true});
+        if(!updatedCarrera) {
+          return res.status(404).json({
+            error: 'Document not found'
+          });
         }
-
-        // actualizar
-        const cambiosCarrera = {
-            ...req.body,
-            usuario: uid
-        };
-
-        const CarreraActualizada = await Carreras.findByIdAndUpdate(id, cambiosCarrera, { new: true });
-
-        res.json({
-            ok: true,
-            elemento: CarreraActualizada
+        return res.status(201).json({
+          success: 'Document updated',
+          msg: 'Carrera Actualizada'
         });
+      
 
     } catch (error) {
 
@@ -102,32 +92,29 @@ const carrerasPut = async(req, res = response) => { // el put de usuarios - Actu
 
 const carrerasDelete = async(req, res = response) => { // el delete de usuarios - eliminar
 
-    const id = req.params.id;
-    const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+    console.log("entra aca")
+    // const id = new mongoose.Types.ObjectId(req.params.id);
+    let id = req.query.id
+    
 
     try {
 
-        const carreraDB = await Carreras.findById(id);
-
-        if (!carreraDB) {
-            res.status(404).json({
-                ok: true,
-                msg: 'Elemento no encontrado por id'
-            });
+        let cambios = {
+            estado: false
         }
-
-        // actualizar el estado para no eliminar de BD
-        const cambiosCarrera = {
-            estado : false,
-            usuario: uid
-        };
-
-        const carreraActualizada = await Carreras.findByIdAndUpdate(id, cambiosCarrera, { new: true });
-
-        res.json({
-            ok: true,
-            elemento: carreraActualizada
+        
+        const updatedCarrera = await Carrera.findOneAndUpdate({_id: id}, {$set: cambios}, {new: true});
+        if(!updatedCarrera) {
+          return res.status(404).json({
+            error: 'Document not found'
+          });
+        }
+        return res.status(201).json({
+          success: 'Document updated',
+          msg: 'Carrera Eliminada'
         });
+
+        
 
     } catch (error) {
 
