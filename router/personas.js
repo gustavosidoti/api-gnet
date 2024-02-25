@@ -19,7 +19,9 @@ const {
 const {personasGet,
        personasPost,
        personasPut,
-       personasDelete } = require('../controllers/personas');
+       personasDelete, 
+       personabyId,
+       personabyCarrera} = require('../controllers/personas');
 
 
 
@@ -28,6 +30,14 @@ const {personasGet,
 const router = Router();
 
 router.get('/', personasGet );
+
+router.get('/:id', [
+        validarJWT,
+], personabyId );
+
+router.post('/personacarrera', [
+        validarJWT,
+], personabyCarrera );
 
 router.post('/', [
         validarJWT,

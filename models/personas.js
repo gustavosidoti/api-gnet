@@ -11,16 +11,17 @@ const PersonaSchema = Schema({
             type: String,
             required: [true, 'El nombre es necesario'],
         },
-        carrera: {
+        carrera: [{
             required: true,
             type: Schema.Types.ObjectId,
             ref: 'Carrera'
+        }],
+        estado: {
+            type: Boolean,
+            default: true,
+            required: false,
         },
-        usuario: {
-            required: true,
-            type: Schema.Types.ObjectId,
-            ref: 'Usuario'
-        },
+        
 
 }, {collection: 'personas'});
 

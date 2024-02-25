@@ -1,6 +1,7 @@
 // CONTROLADOR DE PERSONAS
 
 const { response } = require('express'); // lo desestructuramos para utilizar los res.
+const { default: mongoose } = require('mongoose');
 // importaciones internas
 const Personas = require('../models/personas');
 
@@ -9,21 +10,37 @@ const Personas = require('../models/personas');
 
 const personasGet = async(req, res = response, next) => {
 
-    const desde = 0; // tomamos el desde de el request
+    const desde = req.query.desde | 0; // tomamos el desde de el request
+   
     // Si no viene colocamos 0 por defecto
-
-    const [personas, total] = await Promise.all([ // ARRAY DE PROMESAS
-        Personas
-        .find({estado: true}, 'dni nombre carrera usuario') // los campos que queremos
-        .skip(desde), // se saltea los anteriores a este número
+    try {
         
-        Personas.countDocuments()
-    ]);
+        const cantidadPersonas = await Personas.count({estado: true});
+    
+        const [personas] = await Promise.all([ // ARRAY DE PROMESAS
+            Personas
+            .find({estado: true})
+            .find({nombre: new RegExp( req.query.criterio, 'i')})
+            .populate("carrera")
+            .skip(desde) // se saltea los anteriores a este número
+            .limit(5), // nos muestra hasta este número
+            
+            Personas.countDocuments()
 
-    res.status(200).json({
-        ok: true,
-        personas,
-    });
+        ]);
+    
+        res.status(200).json({
+            ok: true,
+            personas,
+            cantidadPersonas:cantidadPersonas
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }
 
 
 };
@@ -32,9 +49,8 @@ const personasGet = async(req, res = response, next) => {
 const personasPost = async (req, res = response) => { // el post de usuarios - Agregar
 
     // al pasar por el token ya nos indica que estamos logueados, tenemos uid
-    const uid = req.uid;
+    
     const persona = new Personas({
-        usuario: uid,
         ...req.body
     });
 
@@ -60,8 +76,32 @@ const personasPost = async (req, res = response) => { // el post de usuarios - A
 
 const personasPut = async(req, res = response) => { // el put de usuarios - Actualizar
 
-    const id = req.params.id;
-    const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+    const id = new mongoose.Types.ObjectId(req.params.id);
+   // const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+
+   try {
+
+    const personaActualizada = await Personas.findOneAndUpdate({_id: id}, {$set: req.body}, {new: true});
+    if(!personaActualizada) {
+      return res.status(404).json({
+        error: 'La persona no existe'
+      });
+    }
+    return res.status(201).json({
+      ok: true,
+      msg: 'Cambios efectuados correctamente'
+    });
+  
+
+} catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+        ok: false,
+        msg: 'Hable con el administrador'
+    });
+}
 
     try {
 
@@ -84,7 +124,7 @@ const personasPut = async(req, res = response) => { // el put de usuarios - Actu
 
         res.json({
             ok: true,
-            persona: PersonaActualizada
+            msg: 'Cambios efectuados correctamente'
         });
 
     } catch (error) {
@@ -101,32 +141,27 @@ const personasPut = async(req, res = response) => { // el put de usuarios - Actu
 
 const personasDelete = async(req, res = response) => { // el delete de usuarios - eliminar
 
-    const id = req.params.id;
-    const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+    let id = req.query.id
+    
 
     try {
 
-        const personaDB = await Personas.findById(id);
-
-        if (!personaDB) {
-            res.status(404).json({
-                ok: true,
-                msg: 'Persona no encontrada por id'
-            });
+        let cambios = {
+            estado: false
         }
-
-        // actualizar el estado para no eliminar de BD
-        const cambiosPersona = {
-            estado : false,
-            usuario: uid
-        };
-
-        const PersonaActualizada = await Personas.findByIdAndUpdate(id, cambiosPersona, { new: true });
-
-        res.json({
-            ok: true,
-            elemento: PersonaActualizada
+        
+        const personaEliminada = await Personas.findOneAndUpdate({_id: id}, {$set: cambios}, {new: true});
+        if(!personaEliminada) {
+          return res.status(404).json({
+            error: 'La persona no existe en nuestros registros'
+          });
+        }
+        return res.status(201).json({
+          success: 'Document updated',
+          msg: 'La persona seleccionada se ha eliminado de nuestro sistema'
         });
+
+        
 
     } catch (error) {
 
@@ -140,9 +175,65 @@ const personasDelete = async(req, res = response) => { // el delete de usuarios 
 
 }
 
+const personabyId = async(req, res = response) => {
+    try {
+
+        const id = req.params.id
+
+        const persona = await Personas.findById(id)
+        .populate("carrera");
+
+        res.status(200).json({
+            ok: true,
+            persona
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }
+}
+
+const personabyCarrera = async(req, res = response) => {
+    
+    const desde = req.body.desde | 0; // tomamos el desde de el request
+    let idCarrera = req.body.id_carrera | '';
+
+        console.log(idCarrera)
+    try {
+
+        
+
+        const [personas] = await Promise.all([ // ARRAY DE PROMESAS
+            Personas
+        .find({estado: true})
+        .find({carrera: req.body.id_carrera })
+        .populate("carrera")
+        .skip(desde) // se saltea los anteriores a este número
+        .limit(5), // nos muestra hasta este número
+    ]);
+
+        res.status(200).json({
+            ok: true,
+            personas
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }
+}
+
+
 module.exports = {
     personasGet,
     personasPost,
     personasPut,
-    personasDelete
+    personasDelete,
+    personabyId,
+    personabyCarrera
 }

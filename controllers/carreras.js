@@ -13,24 +13,32 @@ const carrerasGet = async(req, res = response, next) => {
     const desde = req.query.desde | 0; // tomamos el desde de el request
     var criterio = req.query.criterio | "";
     // Si no viene colocamos 0 por defecto
-
-    const cantidadCarreras = await Carrera.count({estado: true});
-
-    const [carreras] = await Promise.all([ // ARRAY DE PROMESAS
-        Carrera
-        .find({estado: true}, 'nombreCarrera' )
-        .find({nombreCarrera: new RegExp( req.query.criterio, 'i')}) // ,  los campos que queremos
-        .skip(desde) // se saltea los anteriores a este número
-        .limit(5) // nos muestra hasta este número
-
-      
-    ]);
-
-    res.status(200).json({
-        ok: true,
-        carreras,
-        cantidad: cantidadCarreras
-    });
+    try {
+        
+        const cantidadCarreras = await Carrera.count({estado: true});
+    
+        const [carreras] = await Promise.all([ // ARRAY DE PROMESAS
+            Carrera
+            .find({estado: true}, 'nombreCarrera' )
+            .find({nombreCarrera: new RegExp( req.query.criterio, 'i')}) // ,  los campos que queremos
+            .skip(desde) // se saltea los anteriores a este número
+            .limit(5) // nos muestra hasta este número
+    
+          
+        ]);
+    
+        res.status(200).json({
+            ok: true,
+            carreras,
+            cantidad: cantidadCarreras
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }
 
 
 };
