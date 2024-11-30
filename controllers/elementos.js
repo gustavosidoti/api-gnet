@@ -14,7 +14,7 @@ const elementosGet = async(req, res = response, next) => {
 
     const [elementos, total] = await Promise.all([ // ARRAY DE PROMESAS
         Elementos
-        .find({estado: true}, 'descripcion nro marca modelo usuario') // los campos que queremos
+        .find({estado: true}, 'descripcion nro marca modelo') // los campos que queremos
         .skip(desde) // se saltea los anteriores a este número
         .limit(5), // nos muestra hasta este número
 
