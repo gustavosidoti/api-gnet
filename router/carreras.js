@@ -17,13 +17,14 @@ const {
 
 // Importaciones internas
 
-const { carrerasPost, carrerasGet, carrerasDelete, carrerasPut } = require('../controllers/carreras');
+const { carrerasPost, carrerasGet, carrerasDelete, carrerasPut, carrerasAllGet } = require('../controllers/carreras');
 
 // Rutas 
 
 const router = Router();
 
 router.get('/', carrerasGet );
+router.get('/todas', carrerasAllGet );
 
 router.post('/', [
         validarJWT,

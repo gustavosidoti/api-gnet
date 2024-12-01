@@ -25,7 +25,6 @@ const personasGet = async(req, res = response, next) => {
             .skip(desde) // se saltea los anteriores a este número
             .limit(5), // nos muestra hasta este número
             
-            Personas.countDocuments()
 
         ]);
     

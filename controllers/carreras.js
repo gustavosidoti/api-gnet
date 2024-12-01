@@ -11,7 +11,7 @@ const Carrera = require('../models/carreras');
 const carrerasGet = async(req, res = response, next) => {
 
     const desde = req.query.desde | 0; // tomamos el desde de el request
-    var criterio = req.query.criterio | "";
+    let criterio = req.query.criterio | "";
     // Si no viene colocamos 0 por defecto
     try {
         
@@ -141,9 +141,43 @@ const carrerasDelete = async(req, res = response) => { // el delete de usuarios 
 
 }
 
+// LAS ESPECIALES
+
+const carrerasAllGet = async(req, res = response, next) => {
+
+   
+    // Si no viene colocamos 0 por defecto
+    try {
+        
+        const cantidadCarreras = await Carrera.count({estado: true});
+    
+        const [carreras] = await Promise.all([ // ARRAY DE PROMESAS
+            Carrera
+            .find({estado: true}, 'nombreCarrera' )
+    
+          
+        ]);
+    
+        res.status(200).json({
+            ok: true,
+            carreras,
+            cantidad: cantidadCarreras
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }
+
+
+};
+
 module.exports = {
     carrerasGet,
     carrerasPost,
     carrerasPut,
-    carrerasDelete
+    carrerasDelete,
+    carrerasAllGet
 }

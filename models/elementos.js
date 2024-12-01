@@ -25,7 +25,12 @@ const ElementoSchema = Schema({
             type: Boolean,
             default: true,
             required: true,
-        }
+        },
+        usuario: {
+            required: false,
+            type: Schema.Types.ObjectId,
+            ref: 'Usuario'
+        },
 
 }, {collection: 'elementos'});
 

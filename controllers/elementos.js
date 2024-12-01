@@ -9,21 +9,26 @@ const Elementos = require('../models/elementos');
 
 const elementosGet = async(req, res = response, next) => {
 
-    const desde = 0; // tomamos el desde de el request
+    const desde = req.query.desde | 0; // tomamos el desde de el request
     // Si no viene colocamos 0 por defecto
+
+
+    const cantidadElementos = await Elementos.count({estado: true});
 
     const [elementos, total] = await Promise.all([ // ARRAY DE PROMESAS
         Elementos
         .find({estado: true}, 'descripcion nro marca modelo') // los campos que queremos
+        .find({descripcion: new RegExp( req.query.criterio, 'i')})
         .skip(desde) // se saltea los anteriores a este número
         .limit(5), // nos muestra hasta este número
 
-        Elementos.countDocuments()
+        
     ]);
 
     res.status(200).json({
         ok: true,
         elementos,
+        cantidad: cantidadElementos
     });
 
 
@@ -85,7 +90,8 @@ const elementosPut = async(req, res = response) => { // el put de usuarios - Act
 
         res.json({
             ok: true,
-            elemento: ElementoActualizado
+            elemento: ElementoActualizado,
+            msg: "El elemento ha sido actualizado"
         });
 
     } catch (error) {
@@ -102,19 +108,22 @@ const elementosPut = async(req, res = response) => { // el put de usuarios - Act
 
 const elementosDelete = async(req, res = response) => { // el delete de usuarios - eliminar
 
-    const id = req.params.id;
+    const _id = req.query.id;
     const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
 
+   
     try {
 
-        const elementoDB = await Elementos.findById(id);
+        const elementoDB = await Elementos.findById(_id);
 
         if (!elementoDB) {
             res.status(404).json({
-                ok: true,
+                ok: false,
                 msg: 'Elemento no encontrado por id'
             });
         }
+
+        
 
         // actualizar el estado para no eliminar de BD
         const cambiosElemento = {
@@ -122,7 +131,7 @@ const elementosDelete = async(req, res = response) => { // el delete de usuarios
             usuario: uid
         };
 
-        const ElementoActualizado = await Elementos.findByIdAndUpdate(id, cambiosElemento, { new: true });
+        const ElementoActualizado = await Elementos.findByIdAndUpdate(_id, cambiosElemento, { new: true });
 
         res.json({
             ok: true,
