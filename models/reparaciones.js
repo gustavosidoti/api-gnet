@@ -22,6 +22,11 @@ const ReparacionSchema = Schema({
             required: false,
             unique: false
         },
+        nroReparacion: {
+            type: String,
+            required: false,
+            unique: true
+        },
         estado: {
             type: Boolean,
             default: true,

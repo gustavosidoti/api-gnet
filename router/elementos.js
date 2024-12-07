@@ -28,7 +28,7 @@ const { elementosGet,
 
 const router = Router();
 
-router.get('/', elementosGet );
+router.get('/',validarJWT, elementosGet );
 
 router.post('/', [
         validarJWT,

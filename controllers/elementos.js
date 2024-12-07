@@ -67,7 +67,7 @@ const elementosPost = async (req, res = response) => { // el post de usuarios - 
 const elementosPut = async(req, res = response) => { // el put de usuarios - Actualizar
 
     const id = req.params.id;
-    const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+    const uid = req.usuario.id; // uid del usuario porque lo tenemos al pasar por JWT
 
     try {
 
