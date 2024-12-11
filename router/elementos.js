@@ -20,6 +20,7 @@ const {
 const { elementosGet,
         elementosPost,
         elementosPut,
+        elementosAllGet,
         elementosDelete } = require('../controllers/elementos');
 
 
@@ -29,6 +30,8 @@ const { elementosGet,
 const router = Router();
 
 router.get('/',validarJWT, elementosGet );
+
+router.get('/todos', elementosAllGet );
 
 router.post('/', [
         validarJWT,

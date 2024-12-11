@@ -16,18 +16,20 @@ const {
 
 // Importaciones internas
 
-const { reparacionesGet, reparacionesPost, reparacionesPut } = require('../controllers/reparaciones');
+const { reparacionesGet, reparacionesPost, reparacionesPut, reparacionesPorElementoGet, reparacioPorEstado } = require('../controllers/reparaciones');
 
 // Rutas 
 
 const router = Router();
 
 router.get('/', reparacionesGet );
+router.get('/buscarPorElemento', [validarJWT], reparacionesPorElementoGet );
+router.get('/buscarPorEstado', [validarJWT], reparacioPorEstado );
 
 router.post('/', [
         validarJWT,
         check('descripcionReparacion', 'La descripcion es obligatoria').not().isEmpty(), // no esté vacío  
-        validarCampos // llamamos el middleware que hará la última revisión
+        
 ], reparacionesPost );
 
 router.put('/:id', [

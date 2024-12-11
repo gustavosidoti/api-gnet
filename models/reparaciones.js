@@ -22,15 +22,19 @@ const ReparacionSchema = Schema({
             required: false,
             unique: false
         },
-        nroReparacion: {
+        reparacionNro: {
             type: String,
             required: false,
-            unique: true
+        },
+        estadoRep: {
+            type: String,
+            required: true,
+            unique: false
         },
         estado: {
             type: Boolean,
             default: true,
-            required: true,
+            required: false
         },
         elemento: {
             required: true,

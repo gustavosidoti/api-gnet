@@ -9,20 +9,24 @@ const Reparaciones = require('../models/reparaciones');
 
 const reparacionesGet = async(req, res = response, next) => {
 
-    const desde = 0; // tomamos el desde de el request
-    // Si no viene colocamos 0 por defecto
+    const desde = parseInt(req.query.desde, 10) || 0;
+    
+    const cantidadRep = await Reparaciones.count();
+    const bus = req.query.criterio;
+    
+        // Realizamos la consulta
+        const reparaciones = await Reparaciones
+        .find({estado: true, reparacionNro: new RegExp( bus, 'i')})
+            .populate("elemento")
+            .skip(desde)
+            .limit(5);
 
-    const [reparaciones] = await Promise.all([ // ARRAY DE PROMESAS
-        Reparaciones
-        .find({estado: true}, 'fechaIngreso fechaFinReparacion descripcionReparacion observaciones elemento usuario') // los campos que queremos
-        .skip(desde), // se saltea los anteriores a este número
-        
-        Reparaciones.countDocuments()
-    ]);
 
     res.status(200).json({
         ok: true,
-        reparaciones
+        reparaciones: reparaciones,
+        cantidad: cantidadRep
+
     });
 
 
@@ -31,20 +35,45 @@ const reparacionesGet = async(req, res = response, next) => {
 
 const reparacionesPost = async (req, res = response) => { // el post de usuarios - Agregar
 
-    // al pasar por el token ya nos indica que estamos logueados, tenemos uid
-    const uid = req.uid;
-    const reparacion = new Reparaciones({
-        usuario: uid,
-        ...req.body
-    });
+
+            // Obtiene la fecha actual
+        const fechaActual = new Date();
+
+        // Extrae el día, mes y año
+        const dia = fechaActual.getDate();
+        const mes = fechaActual.getMonth() + 1; // Los meses van de 0 a 11
+        const anio = fechaActual.getFullYear();
+
+        // Formatea la fecha en el formato dd/mm/aaaa
+        const fechaFormateada = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${anio}`;
 
     try {
+
+     // 1- obtenemos el ultimo numero de reparación
+        let ultimaReparacion = await Reparaciones.count();
+        
+        if(ultimaReparacion > 0){
+        ultimaReparacion = ultimaReparacion + 1;
+        }else{
+            ultimaReparacion = 1;
+        }
+        // actualizar
+        const reparacionCompleta = new Reparaciones ({
+            ...req.body,
+            fechaIngreso: fechaFormateada,
+            estado: true,
+            estadoRep: "En proceso",
+            reparacionNro: "REP-" + ultimaReparacion,
+            usuario: req.usuario.id
+        });
+
+
         // guardamos un BD
-        const reparacionDB = await reparacion.save();
+        const reparacionDB = await reparacionCompleta.save();
 
         res.status(200).json({
             ok: true,
-            reparacionDB
+            reparaciones: reparacionDB
         });
     } catch (error) {
         console.log(error);
@@ -140,9 +169,61 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
 
 }
 
+    const reparacionesPorElementoGet = async (req, res = response) => {
+
+        const desde = req.query.desde | 0; // tomamos el desde de el request
+        // Si no viene colocamos 0 por defecto
+        
+        const cantidadRep = await Reparaciones.count();
+    
+        const [reparaciones] = await Promise.all([ // ARRAY DE PROMESAS
+            Reparaciones
+            .find({estado: true, elemento: req.query.criterio}, 'reparacionNro fechaIngreso fechaFinReparacion descripcionReparacion observaciones estadoRep elemento usuario') // los campos que queremos
+            .populate("elemento")
+            .skip(desde) // se saltea los anteriores a este número
+            .limit(5) // nos muestra hasta este número
+           
+        ]);
+    
+        res.status(200).json({
+            ok: true,
+            reparaciones: reparaciones,
+            cantidad: cantidadRep
+    
+        });
+
+    }
+
+    const reparacioPorEstado = async (req, res = response) => {
+
+        const desde = req.query.desde | 0; // tomamos el desde de el request
+        // Si no viene colocamos 0 por defecto
+        
+        const cantidadRep = await Reparaciones.count();
+    
+        const [reparaciones] = await Promise.all([ // ARRAY DE PROMESAS
+            Reparaciones
+            .find({estado: true, estadoRep: new RegExp( req.query.estadorep,'i')}, 'reparacionNro fechaIngreso fechaFinReparacion descripcionReparacion observaciones estadoRep elemento usuario') // los campos que queremos
+            .populate("elemento")
+            .skip(desde) // se saltea los anteriores a este número
+            .limit(5) // nos muestra hasta este número
+           
+        ]);
+    
+        res.status(200).json({
+            ok: true,
+            reparaciones: reparaciones,
+            cantidad: cantidadRep
+    
+        });
+
+    }
+
 module.exports = {
     reparacionesGet,
     reparacionesPost,
     reparacionesPut,
-    reparacionesDelete
+    reparacionesDelete,
+    reparacionesPorElementoGet,
+    reparacioPorEstado
 }

@@ -150,9 +150,43 @@ const elementosDelete = async(req, res = response) => { // el delete de usuarios
 
 }
 
+// LAS ESPECIALES
+
+const elementosAllGet = async(req, res = response, next) => {
+
+   
+    // Si no viene colocamos 0 por defecto
+    try {
+        
+        const cantidadElementos = await Elementos.count({estado: true});
+    
+        const [elementos] = await Promise.all([ // ARRAY DE PROMESAS
+            Elementos
+            .find({estado: true}, 'descripcion' )
+    
+          
+        ]);
+    
+        res.status(200).json({
+            ok: true,
+            elementos: elementos,
+            cantidad: cantidadElementos
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }
+
+
+};
+
 module.exports = {
     elementosGet,
     elementosPost,
     elementosPut,
-    elementosDelete
+    elementosDelete,
+    elementosAllGet
 }
