@@ -16,7 +16,7 @@ const {
 
 // Importaciones internas
 
-const { reparacionesGet, reparacionesPost, reparacionesPut, reparacionesPorElementoGet, reparacioPorEstado } = require('../controllers/reparaciones');
+const { reparacionesGet, reparacionesPost, reparacionesPut, reparacionesPorElementoGet, reparacioPorEstado, reparacionPorFechas } = require('../controllers/reparaciones');
 
 // Rutas 
 
@@ -25,6 +25,7 @@ const router = Router();
 router.get('/', reparacionesGet );
 router.get('/buscarPorElemento', [validarJWT], reparacionesPorElementoGet );
 router.get('/buscarPorEstado', [validarJWT], reparacioPorEstado );
+router.get('/buscarPorFechas', [validarJWT], reparacionPorFechas)
 
 router.post('/', [
         validarJWT,

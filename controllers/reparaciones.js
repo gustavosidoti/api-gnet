@@ -60,7 +60,7 @@ const reparacionesPost = async (req, res = response) => { // el post de usuarios
         // actualizar
         const reparacionCompleta = new Reparaciones ({
             ...req.body,
-            fechaIngreso: fechaFormateada,
+            fechaIngreso: fechaActual,
             estado: true,
             estadoRep: "En proceso",
             reparacionNro: "REP-" + ultimaReparacion,
@@ -219,11 +219,63 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
 
     }
 
+    const reparacionPorFechas = async (req, res = response) => {
+
+        try {
+            const desde = parseInt(req.query.desde) || 0; // Tomamos el 'desde' del request o 0 por defecto
+            const fechaInicio = new Date(req.query.fechaDesde); // Tomamos la fecha de inicio del query
+            const fechaFin = new Date(req.query.fechaHasta); // Tomamos la fecha de fin del query
+    
+            console.log(fechaInicio);
+            // Verificamos que las fechas sean válidas
+            if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: "Las fechas proporcionadas no son válidas."
+                });
+            }
+
+            // Ajustamos las horas para incluir todo el día
+            fechaInicio.setHours(0, 0, 0, 0); // Inicio del día
+            fechaFin.setHours(23, 59, 59, 999); // Fin del día
+    
+            const cantidadRep = await Reparaciones.countDocuments({
+                estado: true, // Solo contamos los documentos con estado true
+                fechaIngreso: { $gte: fechaInicio, $lte: fechaFin } // Rango de fechas
+            });
+    
+            const reparaciones = await Reparaciones
+                .find({
+                    estado: true,
+                    fechaIngreso: { $gte: fechaInicio, $lte: fechaFin } // Filtrar por rango de fechas
+                }, 'reparacionNro fechaIngreso fechaFinReparacion descripcionReparacion observaciones estadoRep elemento usuario')
+                .populate("elemento")
+                .skip(desde) // Saltear los registros anteriores al valor de 'desde'
+                .limit(5); // Limitar la cantidad de registros devueltos
+    
+            res.status(200).json({
+                ok: true,
+                reparaciones: reparaciones,
+                cantidad: cantidadRep
+            });
+        }catch (error) {
+            console.error(error);
+            res.status(500).json({
+                ok: false,
+                msg: "Hubo un error, por favor contacte al administrador."
+            });
+        }
+
+    }
+
+
+
 module.exports = {
     reparacionesGet,
     reparacionesPost,
     reparacionesPut,
     reparacionesDelete,
     reparacionesPorElementoGet,
-    reparacioPorEstado
+    reparacioPorEstado,
+    reparacionPorFechas
 }
