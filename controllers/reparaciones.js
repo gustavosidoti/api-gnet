@@ -11,12 +11,21 @@ const reparacionesGet = async(req, res = response, next) => {
 
     const desde = parseInt(req.query.desde, 10) || 0;
     
-    const cantidadRep = await Reparaciones.count();
-    const bus = req.query.criterio;
+    // Contar la cantidad total de reparaciones (ajustado si también deseas filtrar por estadoRep)
+    const cantidadRep = await Reparaciones.countDocuments({
+        estado: true,
+        estadoRep: { $in: ["En proceso", "Esperando repuesto"] }
+    });
+
+    
+    const bus = req.query.criterio; // variable para atrapar el criterio de búsqueda
     
         // Realizamos la consulta
         const reparaciones = await Reparaciones
-        .find({estado: true, reparacionNro: new RegExp( bus, 'i')})
+        .find({estado: true, 
+               reparacionNro: new RegExp( bus, 'i'), // coincidencia parcial con el número
+               estadoRep:{ $in: ["En proceso", "Esperando repuesto"] } // filtrar por estado
+            })
             .populate("elemento")
             .skip(desde)
             .limit(5);
@@ -91,6 +100,8 @@ const reparacionesPut = async(req, res = response) => { // el put de usuarios - 
 
     const id = req.params.id;
     const uid = req.uid; // uid del usuario porque lo tenemos al pasar por JWT
+    let cambiosReparacion = {};
+    
 
     try {
 
@@ -103,11 +114,22 @@ const reparacionesPut = async(req, res = response) => { // el put de usuarios - 
             });
         }
 
+        // Si finaliza reparacion
+        if(req.body.estadoRep === "Finalizada"){
+            cambiosReparacion = {
+                ...req.body,
+                fechaFinReparacion: new Date(),
+                usuario: uid
+            };
+        }else{
+            cambiosReparacion = {
+                ...req.body,
+                usuario: uid
+            };
+        }
+
         // actualizar
-        const cambiosReparacion = {
-            ...req.body,
-            usuario: uid
-        };
+       
 
         const reparacionActualizada = await Reparaciones.findByIdAndUpdate(id, cambiosReparacion, { new: true });
 
@@ -174,11 +196,18 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
         const desde = req.query.desde | 0; // tomamos el desde de el request
         // Si no viene colocamos 0 por defecto
         
-        const cantidadRep = await Reparaciones.count();
+        // Contar la cantidad total de reparaciones (ajustado si también deseas filtrar por estadoRep)
+        const cantidadRep = await Reparaciones.countDocuments({
+        estado: true,
+        estadoRep: { $in: ["En proceso", "Esperando repuesto"] }
+    });
     
         const [reparaciones] = await Promise.all([ // ARRAY DE PROMESAS
             Reparaciones
-            .find({estado: true, elemento: req.query.criterio}, 'reparacionNro fechaIngreso fechaFinReparacion descripcionReparacion observaciones estadoRep elemento usuario') // los campos que queremos
+            .find({estado: true, 
+                   elemento: req.query.criterio,
+                   estadoRep:{ $in: ["En proceso", "Esperando repuesto"] } // filtrar por estado
+                    }, 'reparacionNro fechaIngreso fechaFinReparacion descripcionReparacion observaciones estadoRep elemento usuario') // los campos que queremos
             .populate("elemento")
             .skip(desde) // se saltea los anteriores a este número
             .limit(5) // nos muestra hasta este número
@@ -199,7 +228,11 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
         const desde = req.query.desde | 0; // tomamos el desde de el request
         // Si no viene colocamos 0 por defecto
         
-        const cantidadRep = await Reparaciones.count();
+        // Contar la cantidad total de reparaciones (ajustado si también deseas filtrar por estadoRep)
+        const cantidadRep = await Reparaciones.countDocuments({
+        estado: true,
+        estadoRep: { $in: ["En proceso", "Esperando repuesto"] }
+    });
     
         const [reparaciones] = await Promise.all([ // ARRAY DE PROMESAS
             Reparaciones
@@ -226,7 +259,7 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
             const fechaInicio = new Date(req.query.fechaDesde); // Tomamos la fecha de inicio del query
             const fechaFin = new Date(req.query.fechaHasta); // Tomamos la fecha de fin del query
     
-            console.log(fechaInicio);
+            
             // Verificamos que las fechas sean válidas
             if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
                 return res.status(400).json({
@@ -247,7 +280,8 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
             const reparaciones = await Reparaciones
                 .find({
                     estado: true,
-                    fechaIngreso: { $gte: fechaInicio, $lte: fechaFin } // Filtrar por rango de fechas
+                    fechaIngreso: { $gte: fechaInicio, $lte: fechaFin }, // Filtrar por rango de fechas
+                    estadoRep:{ $in: ["En proceso", "Esperando repuesto"] } // filtrar por estado
                 }, 'reparacionNro fechaIngreso fechaFinReparacion descripcionReparacion observaciones estadoRep elemento usuario')
                 .populate("elemento")
                 .skip(desde) // Saltear los registros anteriores al valor de 'desde'
@@ -268,6 +302,40 @@ const reparacionesDelete = async(req, res = response) => { // el delete de usuar
 
     }
 
+    const reparacionesFinalizadas = async(req, res = response, next) => {
+
+        const desde = parseInt(req.query.desde, 10) || 0;
+        
+        // Contar la cantidad total de reparaciones (ajustado si también deseas filtrar por estadoRep)
+        const cantidadRep = await Reparaciones.countDocuments({
+            estado: true,
+            estadoRep: { $in: ["Finalizada"] }
+        });
+    
+        
+        const bus = req.query.criterio; // variable para atrapar el criterio de búsqueda
+        
+            // Realizamos la consulta
+            const reparaciones = await Reparaciones
+            .find({estado: true, 
+                   reparacionNro: new RegExp( bus, 'i'), // coincidencia parcial con el número
+                   estadoRep:{ $in: ["Finalizada"] } // filtrar por estado
+                })
+                .populate("elemento")
+                .skip(desde)
+                .limit(5);
+    
+    
+        res.status(200).json({
+            ok: true,
+            reparaciones: reparaciones,
+            cantidad: cantidadRep
+    
+        });
+    
+    
+    };
+
 
 
 module.exports = {
@@ -277,5 +345,6 @@ module.exports = {
     reparacionesDelete,
     reparacionesPorElementoGet,
     reparacioPorEstado,
-    reparacionPorFechas
+    reparacionPorFechas,
+    reparacionesFinalizadas
 }

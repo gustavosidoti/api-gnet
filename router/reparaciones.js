@@ -16,7 +16,8 @@ const {
 
 // Importaciones internas
 
-const { reparacionesGet, reparacionesPost, reparacionesPut, reparacionesPorElementoGet, reparacioPorEstado, reparacionPorFechas } = require('../controllers/reparaciones');
+const { reparacionesGet, reparacionesPost, reparacionesPut, reparacionesPorElementoGet, reparacioPorEstado, reparacionPorFechas,
+        reparacionesFinalizadas } = require('../controllers/reparaciones');
 
 // Rutas 
 
@@ -26,6 +27,8 @@ router.get('/', reparacionesGet );
 router.get('/buscarPorElemento', [validarJWT], reparacionesPorElementoGet );
 router.get('/buscarPorEstado', [validarJWT], reparacioPorEstado );
 router.get('/buscarPorFechas', [validarJWT], reparacionPorFechas)
+
+
 
 router.post('/', [
         validarJWT,
@@ -42,6 +45,9 @@ router.delete('/:id', [
         validarJWT,
         esAdminRole,
 ], reparacionesPut );
+
+// Finalizadas
+router.get('/finalizadas', [validarJWT], reparacionesFinalizadas)
 
 // Compartimos el módulo
 module.exports = router;
